@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html>
+  <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+  <meta content="utf-8" http-equiv="encoding">
+<head>
+  <title>2D random motion dots experiment</title>
+  <script src="jspsych-6.0.5/jspsych.js"></script>
+  <script src="jspsych-6.0.5/plugins/jspsych-instructions.js"></script>
+  <script src="jspsych-6.0.5/plugins/jspsych-html-keyboard-response.js"></script>
+  <script src="jspsych-6.0.5/plugins/jspsych-html-button-response.js"></script>
+  <script src="jspsych-6.0.5/plugins/jspsych-image-keyboard-response.js"></script>
+  <script src="jspsych-6.0.5/plugins/jspsych-survey-multi-choice.js"></script>
+  <script src="jspsych-6.0.5/plugins/jspsych-survey-html-form.js"></script>
+  <script src="jspsych-6.0.5/plugins/jspsych-RDKMOD.js"></script>
+  <script src="jspsych-6.0.5/plugins/StaircaseJS.js"></script>
+  <script src="jspsych-6.0.5/plugins/jspsych-call-function.js"></script>
+  <script src="intro-forms.js"></script>
+  <link href="jspsych-6.0.5/css/jspsych.css" rel="stylesheet" type="text/css">
+  
+	<script type="text/javascript" src="lib/vendors/jquery-2.2.0.min.js"></script>
+	<script type="text/javascript" src="lib/jspsych-pavlovia-3.0.6.js"></script>
+  
+</head>
+
+<body></body>
+<script>
+
+/* ------------ Experiment parameters ------------- */
+
+const CHOICES = ["k", "p"];
+var timeline = [];
+var pav = true;
+var COL_CONFIG = Math.random() > 0.5 ? 1 : 2; // 1 or 2 - whether red or blue on l/rhs
+
+var CONG_DIRECTIONS = {};
+CONG_DIRECTIONS[CHOICES[0]] = [90, 90];
+CONG_DIRECTIONS[CHOICES[1]] = [-90, -90];
+var INCONG_DIRECTIONS = [{}, {}];
+INCONG_DIRECTIONS[0][CHOICES[0]] = [-90, 90]; // coh2 > coh1
+INCONG_DIRECTIONS[0][CHOICES[1]] = [90, -90];
+INCONG_DIRECTIONS[1][CHOICES[0]] = [90, -90]; // coh1 > coh2
+INCONG_DIRECTIONS[1][CHOICES[1]] = [-90, 90];
+
+var DELTA = 0.1;
+var INITIAL_POINT = 1.5;
+var REVERSAL_STOPPING = 10; // TODO change to 10
+var ROTATION = 45;
+
+var N_REPETITIONS = 2; // 2 - there will be 6 blocks!
+
+/* ------------- PAVLOVIA connection ------------- */
+if (pav) {
+  var pavlovia_init = {
+			type: "pavlovia",
+			command: "init"
+	};
+  var prolificID = jsPsych.data.getURLVariable('subject');
+  var subject_code = "a" + ROTATION + '_';
+  if (prolificID)
+    subject_code = subject_code + prolificID;
+  else {
+    subject_code = subject_code + "pilot" + Date.now();
+  }
+ };
+
+ var wait1sec = {
+  type: 'html-keyboard-response',
+  stimulus: "<p>Wait while your data is being saved.</p> <p><b>Don't press any button, please.</b></p> <br/><img src='https://media.tenor.com/images/d6cd5151c04765d1992edfde14483068/tenor.gif' width='50' height='50'>",
+  choices: jsPsych.NO_KEYS,
+  trial_duration: 3000
+};
+
+/* ------ intro -----------*/
+
+var colors_border = [["<font color='red'> red </font>", "<font color='blue'> blue </font>"],
+                     ["<font color='blue'> blue </font>", "<font color='red'> red </font>"]]
+
+var welcome_screen = {
+    type: "html-keyboard-response",
+    stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +
+    "<h3> Welcome to this online experiment </h3>" +
+    "<p>Sit down comfortably in front of your computer.</p>" +
+    "<p>The whole experiment should take about 40 minutes with short breaks. The experiment consists of two parts.</p>" +
+    "<p><b>Part 1</b> is shorter and tests whether you qualify to take part in the next part of the experiment.</p>" +
+    "<p><b>Part 2</b> is longer. During part 2 you will be also given some breaks.</p>" +
+    "<p>You can take as much time as needed during the breaks, but the total time limit for the experiment is  115 minutes.</p>" +
+    "Press <b>SPACE</b> to proceed</div>",
+    choices: [32]
+};
+
+var info_panel = {
+    type: "html-keyboard-response",
+    stimulus: info_sheet,
+    choices: [32]
+};
+
+var demographic_panel = {
+    type: "survey-html-form",
+    preamble: '<p><h4>Demographic information</h4></p>',
+    html: demographic_form
+};
+
+var welcome_screen2 = {
+    type: "html-keyboard-response",
+    stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +
+    "<p>In this experiment you need to be both fast and accurate.</p>" +
+    "<p><b>Remember to be accurate first!</b> <br/>If you commit too many mistakes the experiment might end prematurely and <u>you may not receive the payment</u>.</p>" +
+    "Press <b>SPACE</b> to proceed</div>",
+    choices: [32]
+};
+
+var first_instruction = {
+    type: "html-keyboard-response",
+    stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +
+      "<p>You will see dots moving towards four platforms on the edge. Two platforms are in red, and the other two are in blue. </p>" +
+    "<h3> You need to decide towards which pair of coloured platforms (red or blue) the dots are moving on average.</h3>" +
+    "<p>Use your right middle finger to press <b> " + CHOICES[1] + "</b> for " + colors_border[COL_CONFIG-1][0] + " (right)." + 
+    "</br> Use your right index finger to press <b>" + CHOICES[0] + "</b> for " + colors_border[COL_CONFIG-1][1] + "(left).</p>"+
+    "Press <b>SPACE</b> to proceed</div>",
+    choices: [32]
+  };
+
+var info_browser = {
+  type: 'html-keyboard-response',
+  stimulus: function(){
+    var browser;
+    var resolution;
+    try {
+      browser = navigator.userAgent;
+    } catch (error) {
+      browser = "null";
+    };
+    try {
+      resolution = "" + window.screen.availWidth + "," + window.screen.availHeight;
+    } catch (error) {
+      resolution = "null";
+    };
+    console.log("browser info saved");
+    return "<font color='grey'>B:" + browser + ",R:" + resolution + "</font>";
+  },
+  choices: jsPsych.NO_KEYS,
+  trial_duration: 5
+};
+
+
+timeline.push(welcome_screen);
+timeline.push(info_panel);
+timeline.push(demographic_panel);
+timeline.push(consent_panel);
+if (pav) timeline.push(pavlovia_init);
+timeline.push(welcome_screen2);
+timeline.push(first_instruction);
+timeline.push(info_browser);
+
+
+/* ------ experiment -------- */
+
+var fixation = {
+  type: 'html-keyboard-response',
+  stimulus: '<div style="font-size:60px;">+</div>',
+  choices: jsPsych.NO_KEYS,
+  trial_duration: 250
+};
+var iti = {
+  type: 'html-keyboard-response',
+  stimulus: ' ',
+  choices: jsPsych.NO_KEYS,
+  trial_duration: function() {
+    return jsPsych.randomization.sampleWithoutReplacement([400, 500, 600], 1)[0];
+  }
+};
+
+// ------------------------------------------ PART 1 tutorial start
+
+var tutorial_1intro = {
+    type: "html-keyboard-response",
+    stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +"<p>Welcome to the <b>PART 1</b> of the experiment.</p>" +
+    "<br/><p>In this part, please focus only on WHITE dots on the screen and ignore the BLACK ones.</p>" + 
+    "<p>Let's start with some practice exercises.</p>" +
+    "<p>Remember the task: decide towards which coloured platform (red or blue) the dots are moving on average</p>" +
+    "Press <b>SPACE</b> to proceed</div>",
+    choices: [32]
+};
+var tutorial_1_2 = {
+  type: "html-keyboard-response",
+  stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +"<p>Let's try one more time.</p>" + "Press <b>SPACE</b> to proceed</div>",
+  choices: [32]
+};
+var tutorial_1_3 = {
+  type: "html-keyboard-response",
+  stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +"<p>With time trials will start getting more difficult.</p>" + "Press <b>SPACE</b> to proceed</div>",
+  choices: [32]
+};
+var tutorial_1_4 = {
+  type: "html-keyboard-response",
+  stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +"<p>Let's try a few more times to practice.</p>" + "Press <b>SPACE</b> to proceed</div>",
+  choices: [32]
+};
+
+var feedback = {
+  type: 'html-keyboard-response',
+  stimulus: function(){
+    var last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
+    if(last_trial_correct){
+      return "<h2 style='background: white;padding: 10px;'> <font color='green'>Correct! </font> </h2>";
+    } else {
+      return "<h2 style='background: white;padding: 10px;'> <font color='red'> Wrong. </font>  </h2>"
+    }
+  },
+  choices: jsPsych.NO_KEYS,
+  trial_duration: 500
+};
+
+var block_tutorial = {
+  type: "RDK",
+  post_trial_gap: 50,
+  number_of_dots: 100,
+  dot_radious: 3,
+  dot_life: 7,
+  move_distance: 2,
+  RDK_type: 2,
+  choices: CHOICES,
+  correct_choice: CHOICES[0],
+  coherence: [0, 0.8],
+  aperture_type: 4,
+  border: true,
+  colour_config: COL_CONFIG,
+  rotation_config: () => [ROTATION, -ROTATION],
+  coherent_direction: CONG_DIRECTIONS[CHOICES[0]],
+  dot_color: ['black', 'white'],
+  trial_duration: 4000,
+  number_of_apertures: 2,
+  aperture_width: 140,
+  aperture_height: 550
+};
+timeline.push(tutorial_1intro);
+var loop_tutorial = {
+    timeline: [block_tutorial, feedback],
+    loop_function: function(data){
+      var answer = data.values()[0].correct;
+      if (answer)
+        return false;
+      return true;
+    }
+}
+timeline.push(loop_tutorial);
+timeline.push(tutorial_1_2);
+var block_tutorial2 = Object.assign({}, block_tutorial);
+block_tutorial2.correct_choice = CHOICES[1];
+block_tutorial2.coherence = [0.5, 0];
+block_tutorial2.coherent_direction =  CONG_DIRECTIONS[CHOICES[1]];
+block_tutorial2.dot_color =  ['white', 'black'];
+var loop_tutorial = {
+    timeline: [block_tutorial2, feedback],
+    loop_function: function(data){
+      var answer = data.values()[0].correct;
+      if (answer)
+        return false;
+      return true;
+    }
+}
+timeline.push(loop_tutorial);
+
+timeline.push(tutorial_1_3);
+var block_tutorial3 = Object.assign({}, block_tutorial);
+block_tutorial3.correct_choice = CHOICES[0];
+block_tutorial3.coherence = [0.1, 0];
+block_tutorial3.coherent_direction =  CONG_DIRECTIONS[CHOICES[0]];
+block_tutorial3.dot_color =  ['white', 'black'];
+var loop_tutorial = {
+    timeline: [block_tutorial3, feedback],
+    loop_function: function(data){
+      var answer = data.values()[0].correct;
+      if (answer)
+        return false;
+      return true;
+    }
+}
+timeline.push(loop_tutorial);
+
+timeline.push(tutorial_1_4);
+
+let rand_i = Math.random() > 0.5 ? 1 : 0;
+var tutorial_loop_cohs = [0.1, 0.05, 0.2, 0.4];
+let rand_coh = tutorial_loop_cohs[Math.floor(Math.random() * tutorial_loop_cohs.length)];
+var block_tutorial_loop = {
+  type: "RDK",
+  post_trial_gap: 50,
+  number_of_dots: 100,
+  dot_radious: 3,
+  dot_life: 7,
+  move_distance: 2,
+  RDK_type: 2,
+  choices: CHOICES,
+  correct_choice: () => CHOICES[rand_i],
+  coherence: () => rand_i == 1 ? [0, rand_coh] : [rand_coh, 0],
+  aperture_type: 4,
+  border: true,
+  colour_config: COL_CONFIG,
+  rotation_config: () => [ROTATION, -ROTATION],
+  coherent_direction: ()=> CONG_DIRECTIONS[CHOICES[rand_i]],
+  dot_color: () => rand_i == 1 ? ['black', 'white'] : ['white', 'black'],
+  trial_duration: -1,
+  number_of_apertures: 2,
+  aperture_width: 140,
+  aperture_height: 550
+};
+var tut_n = 0;
+var loop_tutorial = {
+    timeline: [block_tutorial_loop, feedback],
+    loop_function: function(data){
+      rand_i = Math.random() > 0.5 ? 1 : 0;
+      rand_coh = tutorial_loop_cohs[Math.floor(Math.random() * tutorial_loop_cohs.length)];
+      tut_n = tut_n + 1;
+      let last_trials = jsPsych.data.get().last(16*2).values();
+      last_trials = last_trials.filter(x => x !== undefined);
+      last_trials = last_trials.filter(x => "correct" in x);
+      let accuracy = last_trials.filter(x => x.correct === true).length * 100/ last_trials.length;
+      console.log('>> loop acc: ' + accuracy + ' | '+ tut_n);
+      if (tut_n > 16 && accuracy > 75)
+        return false;
+      return true;
+    }
+}
+timeline.push(loop_tutorial);
+
+if (pav) {
+var pavlovia_finish = {
+    type: "pavlovia",
+    command: "finish",
+    participantId: subject_code + '_T'
+  };
+  timeline.push(pavlovia_finish);
+  timeline.push(wait1sec);
+  timeline.push(pavlovia_init);
+};
+
+// ------------------------------------------ PART 1 tutorial end
+
+// ------------------------------------------ PART 1 a start
+var stairs = new Staircase({
+  coh1: {
+      firstVal: INITIAL_POINT,
+      stepSizeUp: 2*DELTA,
+      stepSizeDown: 2*DELTA,
+      limits: [-1, 2],
+      down: 2,
+      up: 1,
+      wait: true,
+      withReset: true,
+      reversalLimit: REVERSAL_STOPPING
+  },
+  coh2: {
+      firstVal: INITIAL_POINT,
+      stepSizeUp: 2*DELTA,
+      stepSizeDown: 2*DELTA,
+      limits: [-1, 2],
+      down: 3,
+      up: 1,
+      wait: true,
+      withReset: true,
+      reversalLimit: REVERSAL_STOPPING
+  }
+});
+stairs.init('coh1');
+
+// whatever you change below remember to change in loopNode too
+var axes = [{coh: [10**stairs.getLast('coh1')/100, 0], col: ['white', 'black']},
+            {coh: [0, 10**stairs.getLast('coh1')/100], col: ['black', 'white']}];
+randDirection = Math.random()>0.5 ? CHOICES[0] : CHOICES[1];
+randAxes = Math.random()>0.5 ? axes[0] : axes[1];
+
+var block1a = {
+  type: "RDK",
+  post_trial_gap: 50,
+  number_of_dots: 100,
+  dot_radious: 3,
+  dot_life: 7,
+  move_distance: 2,
+  RDK_type: 2,
+  choices: CHOICES,
+  correct_choice: () => randDirection,
+  coherence: () => randAxes.coh,
+  aperture_type: 4,
+  border: true,
+  colour_config: COL_CONFIG,
+  rotation_config: () => [ROTATION, -ROTATION],
+  coherent_direction: () => CONG_DIRECTIONS[randDirection],
+  dot_color: () => randAxes.col,
+  trial_duration: 4000,
+  number_of_apertures: 2,
+  aperture_width: 140,
+  aperture_height: 550
+};
+
+var iti_stair = {
+  type: 'html-keyboard-response',
+  stimulus: function(){
+    return "<font color='grey'>" + stairs.getActive().name + "</font>";
+  },
+  choices: jsPsych.NO_KEYS,
+  trial_duration: function() {
+    return jsPsych.randomization.sampleWithoutReplacement([400, 500, 600], 1)[0];
+  }
+};
+// beginning of staircase session
+var loop_node = {
+    timeline: [iti_stair, fixation, block1a, feedback],
+    loop_function: function(data){
+      var answer = data.values()[2].correct;
+      stairs.next(answer);
+      console.log('- - - - -');
+      console.log('Current response:' + answer);
+      console.log('Staircase for :' + stairs.getActive().name);
+      console.log('Last staircase value:', stairs.getLast(stairs.getActive().name));
+      console.log('Current reversals:', stairs.getReversals(stairs.getActive().name));
+      console.log('- - - - -');
+      if (stairs.getReversals(stairs.getActive().name).length > 0) {
+        stairs.getActive().stepSizeUp = DELTA;
+        stairs.getActive().stepSizeDown = 0.7393*DELTA;
+      }
+      if (stairs.reversalLimitReached("coh1") && stairs.reversalLimitReached("coh2"))
+        return false;
+      else {
+        stairs.changeActive();
+        if (stairs.reversalLimitReached(stairs.getActive().name)) {
+          stairs.lock(stairs.getActive().name);
+          stairs.changeActive();
+        };
+        randDirection = Math.random()>0.5 ? CHOICES[0] : CHOICES[1];
+        axes = [{coh: [10**stairs.getLast(stairs.getActive().name)/100, 0], col: ['white', 'black']},
+              {coh: [0, 10**stairs.getLast(stairs.getActive().name)/100], col: ['black', 'white']}];
+        randAxes = Math.random()>0.5 ? axes[0] : axes[1];
+        return true;
+      }
+    }
+}
+
+var intro1ab = {
+    type: "html-keyboard-response",
+    stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +
+      "<p>Great! You are ready to start <b>PART 1</b>.</p><p>There is time limit of <b>4 seconds</b> per trial. "+
+      "If you exceed this time, your answer is considered wrong.</p><p>Remember to watch only WHITE dots.</p> " +
+      "<br/><p><i>Please note that your responses in this part will be checked by an automated script."+
+      " If the accuracy of your response does not reach a pre-defined level, we could not continue the rest of the experiment, and you will be redirected to Prolific website.</i></p>" +
+      "<br/> Press <b>SPACE</b> to continue.</div>",
+    choices: [32]
+};
+
+timeline.push(intro1ab);
+timeline.push(loop_node);
+
+var debug_summary = {
+    type: "html-keyboard-response",
+    stimulus: () => {
+      let st1 = stairs.getReversals("coh1").slice(1).reduce((a,b) => a+b)/(stairs.getReversals("coh1").length-1);
+      let st2 = stairs.getReversals("coh2").slice(1).reduce((a,b) => a+b)/(stairs.getReversals("coh2").length-1);
+      st1 = 10**st1;
+      st2 = 10**st2;
+      return "Optimal coherence 1 (avg of reversals): " + st1 + "%<br/>" +
+             "Optimal coherence 2 (avg of reversals): " + st2 + "%<br/>" +
+             "Difference: " + Math.abs(st1 - st2) + "%<br/><b>Press SPACE</b>";
+      },
+    choices: [32]
+};
+//timeline.push(debug_summary);
+
+var assigner = {
+  type: "html-keyboard-response",
+  stimulus: " a ",
+  trial_duration: 100,
+  on_finish: function(data){
+    console.log('assigner task executed');
+    let st1 = stairs.getReversals("coh1").slice(1).reduce((a,b) => a+b)/(stairs.getReversals("coh1").length-1);
+    let st2 = stairs.getReversals("coh2").slice(1).reduce((a,b) => a+b)/(stairs.getReversals("coh2").length-1);
+    st1 = 10**st1/100;
+    st2 = 10**st2/100;
+    data.stair_coh1 = st1;
+    data.stair_coh2 = st2;
+  }
+};
+timeline.push(assigner);
+var end_part1 = {
+    type: "html-keyboard-response",
+    stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +
+      "<p>You successfully finished PART 1. Congratulations!</p> <br/><br/>Press <b>SPACE</b> to proceed</div>",
+    choices: [32]
+};
+timeline.push(end_part1);
+
+// ------------------------------------------ PART 1 end
+
+
+// ------------------------------------------ PART 2 tutorial start
+var timeline_part2 = [];
+
+var tutorial_2intro = {
+    type: "html-keyboard-response",
+    stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +
+      "<p>Welcome to the <b>PART2</b> of the experiment.</p>" +
+    "<br/><p>This part is a little more challenging.</p>" + 
+    "<p>You need to watch <b>both streams with white dots</b> and again decide towards which coloured platform (red or blue)<br/>the dots from both streams are moving on average.</p>" +
+    "<p>There is <b>4 seconds</b> time limit per trial.</p>" +
+    "<p>Don't worry. We will practice this part too.</p>" +
+    "Press <b>SPACE</b> to proceed</div>",
+    choices: [32]
+};
+timeline_part2.push(tutorial_2intro);
+
+var tutorial_2_warning = {
+    type: "html-keyboard-response",
+    stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +
+      "<p>Be careful!</p>" + 
+    "<p>Sometimes direction of dots movement might be inconsistent between streams. You need to pick direction of a DOMINANT movement.</p>" +
+    "<p>Let's practice that.</p>" +
+    "Press <b>SPACE</b> to proceed</div>",
+    choices: [32]
+};
+
+var block2_tutorial = {
+  type: "RDK",
+  post_trial_gap: 50,
+  number_of_dots: 100,
+  dot_radious: 3,
+  dot_life: 7,
+  move_distance: 2,
+  RDK_type: 2,
+  choices: CHOICES,
+  correct_choice: CHOICES[1],
+  coherence: [0.2, 0.5],
+  aperture_type: 4,
+  border: true,
+  colour_config: COL_CONFIG,
+  rotation_config: () => [ROTATION, -ROTATION],
+  coherent_direction: CONG_DIRECTIONS[CHOICES[1]],
+  dot_color: ['white', 'white'],
+  trial_duration: 4000,
+  number_of_apertures: 2,
+  aperture_width: 140,
+  aperture_height: 550
+};
+var loop_tutorial2 = {
+    timeline: [block2_tutorial, feedback],
+    loop_function: function(data){
+      var answer = data.values()[0].correct;
+      if (answer)
+        return false;
+      return true;
+    }
+}
+timeline_part2.push(loop_tutorial2);
+timeline_part2.push(tutorial_1_2);
+
+var block2_tutorial2 = Object.assign({}, block2_tutorial);
+block2_tutorial2.coherence = [0.2, 0.0];
+var loop_tutorial = {
+    timeline: [block2_tutorial2, feedback],
+    loop_function: function(data){
+      var answer = data.values()[0].correct;
+      if (answer)
+        return false;
+      return true;
+    }
+}
+timeline_part2.push(loop_tutorial);
+timeline_part2.push(tutorial_1_2);
+
+var block2_tutorial3 = Object.assign({}, block2_tutorial);
+block2_tutorial3.correct_choice = CHOICES[0];
+block2_tutorial3.coherence = [0.3, 0.1];
+block2_tutorial3.coherent_direction =  CONG_DIRECTIONS[CHOICES[0]];
+var loop_tutorial = {
+    timeline: [block2_tutorial3, feedback],
+    loop_function: function(data){
+      var answer = data.values()[0].correct;
+      if (answer)
+        return false;
+      return true;
+    }
+};
+timeline_part2.push(loop_tutorial);
+
+timeline_part2.push(tutorial_2_warning);
+
+var block2_tutorial4 = Object.assign({}, block2_tutorial);
+block2_tutorial4.correct_choice = CHOICES[0];
+block2_tutorial4.coherence = [0.3, 0.1];
+block2_tutorial4.coherent_direction =  INCONG_DIRECTIONS[1][CHOICES[0]];
+var loop_tutorial = {
+    timeline: [block2_tutorial4, feedback],
+    loop_function: function(data){
+      var answer = data.values()[0].correct;
+      if (answer)
+        return false;
+      return true;
+    }
+};
+timeline_part2.push(loop_tutorial);
+
+timeline_part2.push(tutorial_1_2);
+var block2_tutorial5 = Object.assign({}, block2_tutorial);
+block2_tutorial5.correct_choice = CHOICES[1];
+block2_tutorial5.coherence = [0.05, 0.15];
+block2_tutorial5.coherent_direction =  INCONG_DIRECTIONS[0][CHOICES[1]];
+var loop_tutorial = {
+    timeline: [block2_tutorial5, feedback],
+    loop_function: function(data){
+      var answer = data.values()[0].correct;
+      if (answer)
+        return false;
+      return true;
+    }
+};
+timeline_part2.push(loop_tutorial);
+
+timeline_part2.push(tutorial_1_2);
+var block2_tutorial5 = Object.assign({}, block2_tutorial);
+block2_tutorial5.correct_choice = CHOICES[0];
+block2_tutorial5.coherence = [0.08, 0.2];
+block2_tutorial5.coherent_direction =  INCONG_DIRECTIONS[0][CHOICES[0]];
+var loop_tutorial = {
+    timeline: [block2_tutorial5, feedback],
+    loop_function: function(data){
+      var answer = data.values()[0].correct;
+      if (answer)
+        return false;
+      return true;
+    }
+};
+timeline_part2.push(loop_tutorial);
+
+// ------------------------------------------ PART 2 tutorial end
+
+// ------------------------------------------ PART 2 start
+var conditions;
+var COH1_VAL;
+var COH2_VAL;
+
+function get_direction(choice, cong, coh1, coh2) {
+  var dir;
+  if (cong === true)
+    dir = CONG_DIRECTIONS[choice]
+  else
+    dir = INCONG_DIRECTIONS[(coh1>coh2)*1][choice]
+  return dir;
+};
+
+conditions = [];
+let st1 = () => jsPsych.data.get().select('stair_coh1').values[0]; 
+let st2 = () => jsPsych.data.get().select('stair_coh2').values[0];
+let st_diff = () => Math.abs(st1() - st2());
+
+// TODO all conditions
+
+// --- Level 1 ---
+conditions.push({coh1: st1,
+  coh2: 0,
+  correct: CHOICES[0],
+  dir: get_direction(CHOICES[0], true),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: st1,
+  coh2: 0,
+  correct: CHOICES[1],
+  dir: get_direction(CHOICES[1], true),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: 0,
+  coh2: st1,
+  correct: CHOICES[0],
+  dir: get_direction(CHOICES[0], true),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: 0,
+  coh2: st1,
+  correct: CHOICES[1],
+  dir: get_direction(CHOICES[1], true),
+  axCol: ['white', 'white']}
+);
+// --- Level 2 ---
+conditions.push({coh1: st2,
+  coh2: 0,
+  correct: CHOICES[0],
+  dir: get_direction(CHOICES[0], true),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: st2,
+  coh2: 0,
+  correct: CHOICES[1],
+  dir: get_direction(CHOICES[1], true),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: 0,
+  coh2: st2,
+  correct: CHOICES[1],
+  dir: get_direction(CHOICES[1], true),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: 0,
+  coh2: st2,
+  correct: CHOICES[0],
+  dir: get_direction(CHOICES[0], true),
+  axCol: ['white', 'white']}
+);
+
+// --- Level 3 ---
+conditions.push({coh1: st1,
+  coh2: st_diff,
+  correct: CHOICES[0],
+  dir: get_direction(CHOICES[0], true),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: st1,
+  coh2: st_diff,
+  correct: CHOICES[1],
+  dir: get_direction(CHOICES[1], true),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: st_diff,
+  coh2: st1,
+  correct: CHOICES[0],
+  dir: get_direction(CHOICES[0], true),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: st_diff,
+  coh2: st1,
+  correct: CHOICES[1],
+  dir: get_direction(CHOICES[1], true),
+  axCol: ['white', 'white']}
+);
+// --- Level 4 ---
+conditions.push({coh1: st2,
+  coh2: st_diff,
+  correct: CHOICES[0],
+  dir: get_direction(CHOICES[0], false, st2, st_diff),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: st2,
+  coh2: st_diff,
+  correct: CHOICES[1],
+  dir: get_direction(CHOICES[1], false, st2, st_diff),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: st_diff,
+  coh2: st2,
+  correct: CHOICES[0],
+  dir: get_direction(CHOICES[0], false, st_diff, st2),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: st_diff,
+  coh2: st2,
+  correct: CHOICES[1],
+  dir: get_direction(CHOICES[1], false, st_diff, st2),
+  axCol: ['white', 'white']}
+);
+// ----------------- Important: previous conditions are 2x the last control condition
+conditions = conditions.concat(conditions);
+// --- Level 5 ---
+conditions.push({coh1: 0.6,
+  coh2: 0,
+  correct: CHOICES[0],
+  dir: get_direction(CHOICES[0], true),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: 0.6,
+  coh2: 0,
+  correct: CHOICES[1],
+  dir: get_direction(CHOICES[1], true),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: 0,
+  coh2: 0.6,
+  correct: CHOICES[0],
+  dir: get_direction(CHOICES[0], true),
+  axCol: ['white', 'white']}
+);
+conditions.push({coh1: 0,
+  coh2: 0.6,
+  correct: CHOICES[1],
+  dir: get_direction(CHOICES[1], true),
+  axCol: ['white', 'white']}
+);
+
+/*
+// -------------- version 2 (with fixed coherencies)
+var COH_LEVELS = [2.00, 3.84];//, 5.76, 8.64, 12.96, 19.44, 29.16, 43.75, 65.61];
+COH_LEVELS = COH_LEVELS.map((x) => x/100);
+
+for (const cc in COH_LEVELS) {
+  let cval = COH_LEVELS[cc];
+  conditions.push({coh1: cval,
+    coh2: 0,
+    correct: CHOICES[0],
+    dir: get_direction(CHOICES[0], true),
+    axCol: ['white', 'black']}
+  );
+  conditions.push({coh1: cval,
+    coh2: 0,
+    correct: CHOICES[1],
+    dir: get_direction(CHOICES[1], true),
+    axCol: ['white', 'black']}
+  );
+  conditions.push({coh1: 0,
+    coh2: cval,
+    correct: CHOICES[0],
+    dir: get_direction(CHOICES[0], true),
+    axCol: ['black', 'white']}
+  );
+  conditions.push({coh1: 0,
+    coh2: cval,
+    correct: CHOICES[1],
+    dir: get_direction(CHOICES[1], true),
+    axCol: ['black', 'white']}
+  );
+};
+*/
+
+var debug_helper = {
+    type: 'html-keyboard-response',
+    stimulus: function(){
+      if (typeof jsPsych.timelineVariable('coh1', true) == "function")
+       var c1 = jsPsych.timelineVariable('coh1', true)();
+      else
+       var c1 = jsPsych.timelineVariable('coh1', true);
+      if (typeof jsPsych.timelineVariable('coh2', true) == "function")
+       var c2 = jsPsych.timelineVariable('coh2', true)();
+      else
+       var c2 = jsPsych.timelineVariable('coh2', true);
+      var html="<p>"
+      html = html + "<b>Previus trial</b><br/>Correct: " + jsPsych.timelineVariable('correct', true) + "</br>Coh1: " + c1 + "</br> Coh2: " + c2;
+      html = html + "<br/>SPACE</p>"
+      return html;
+    },
+    choices: [32]
+  };
+var reaction_time = {
+  type: 'html-keyboard-response',
+  stimulus: function(){
+    var last_trial_rt = jsPsych.data.get().last(1).values()[0].rt;
+    if (last_trial_rt == -1 || last_trial_rt > 3000) {
+      return "<h2 style='background:white;'> <font color='red'>You are too slow.</font></h2>";
+    } else if (last_trial_rt < 250){
+      return "<h2 style='background:white;'> <font color='red'>You are too fast!</font></h2>";
+    } else {
+      return ""
+    }
+  },
+  choices: jsPsych.NO_KEYS,
+  trial_duration: function(){
+    var last_trial_rt = jsPsych.data.get().last(1).values()[0].rt;
+    if(last_trial_rt < 250 || last_trial_rt > 3000){
+      return 1000;
+    } else {
+      return 500;
+    }
+  }
+};
+var block2 = {
+    type: "RDK",
+    post_trial_gap: 50,
+    number_of_dots: 100,
+    dot_radious: 3,
+    dot_life: 7,
+    move_distance: 2,
+    RDK_type: 2,
+    choices: CHOICES,
+    correct_choice: jsPsych.timelineVariable('correct'),
+    coherence: () => {
+      if (typeof jsPsych.timelineVariable('coh1', true) == "function")
+       var c1 = jsPsych.timelineVariable('coh1', true)();
+      else
+       var c1 = jsPsych.timelineVariable('coh1', true);
+      if (typeof jsPsych.timelineVariable('coh2', true) == "function")
+       var c2 = jsPsych.timelineVariable('coh2', true)();
+      else
+       var c2 = jsPsych.timelineVariable('coh2', true);
+      return [c1, c2];
+    },
+    aperture_type: 4,
+    border: true,
+    colour_config: COL_CONFIG,
+    rotation_config: () => [ROTATION, -ROTATION],
+    coherent_direction: jsPsych.timelineVariable('dir'),
+    dot_color: jsPsych.timelineVariable('axCol'),
+    trial_duration: 4000,
+    number_of_apertures: 2,
+    aperture_width: 140,
+    aperture_height: 550
+};
+
+var procedure = {
+    timeline: [
+        fixation,
+        block2,
+        reaction_time,
+        //debug_helper,
+        iti
+    ],
+    timeline_variables: conditions,
+    sample: {
+        type: 'fixed-repetitions',
+        size: N_REPETITIONS,
+    }
+};
+
+/*var intro_part2_version2 = {
+    type: "html-keyboard-response",
+    stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +
+      "<p>You are ready to start PART 2 of experiment<br/><b>Your goal is the same as in PART1</b> <br/>"+
+      "(<i>The only difference is that now you will NOT receive an immediate feedback after each trial, but after blocks</i>)" +
+      "<br/>Remember about the time limit of <b>4 seconds</b> per trial. " + 
+      "If you exceed it, the answer will be marked as incorrect.</p>"+
+      "If you make too many mistakes, the experiment will finish prematurely and you will not receive the reward.<br/><br/>Press <b>SPACE</b></div>",
+    choices: [32]
+};*/
+
+var intro_part2 = {
+    type: "html-keyboard-response",
+    stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" +
+      "<p>You are ready to start PART 2 of experiment.<br/>There will be 6 blocks with breaks between them.<br/><br/>"+
+      "<i>This time you'll NOT receive feedback after each trial but at the end of the block.</i>" +
+      "<br/>Remember about the time limit of <b>4 seconds</b> per trial. If you exceed it, the answer will be marked as <b>incorrect</b>.</p>"+
+      "<br/><b>Please focus on the task.</b> If you make too many mistakes, the experiment will end and you may not receive payment!</p>"+
+      "<br/>Press <b>SPACE</b></div>",
+    choices: [32]
+};
+
+function generate_break_screen(session_nr){
+  var message = {
+    type: "html-keyboard-response",
+    stimulus: function(){
+      console.log('++++++');
+      let last_trials = jsPsych.data.get().last(conditions.length*4*N_REPETITIONS+5).values();
+      last_trials = last_trials.filter(x => x !== undefined);
+      last_trials = last_trials.filter(x => "correct" in x);
+      let accuracy = last_trials.filter(x => x.correct === true).length * 100/ last_trials.length;
+      let msg_improve = accuracy < 80 ? "<h5><font color='#ffb400'>Try to improve!</font></h5>" : "<h5><font color='#27d200'>Well done!</font></h5>";
+      return "<div style='background: #d3d3d3;padding: 20px;'>" + "<p>You finished block " + session_nr + "/6 of PART 2 of experiment. </p>"+
+           "<br/><p>Your accuracy in this session was <h2>" + Math.round(accuracy*100)/100 + " %</h2></p>"+
+           msg_improve + "<br/><p>Take a break now.<br/>Whenever you are ready to continue press <b>SPACE</b></p></div>";
+    },
+    choices: [32]
+  };
+  return message;
+}
+
+var session_start = {
+    type: "html-keyboard-response",
+    stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" + "To start the next block of PART 2 press <b>SPACE</b></div>",
+    choices: [32]
+};
+
+timeline_part2.push(intro_part2);
+
+var split_1 = {
+    timeline: [session_start, procedure, generate_break_screen(1)]
+};
+
+var split_2 = {
+    timeline: [session_start, procedure, generate_break_screen(2)]
+};
+
+var split_3 = {
+    timeline: [session_start, procedure, generate_break_screen(3)]
+};
+
+var split_4 = {
+    timeline: [session_start, procedure, generate_break_screen(4)]
+};
+
+var split_5 = {
+    timeline: [session_start, procedure, generate_break_screen(5)]
+};
+
+var split_6 = {
+    timeline: [session_start, procedure]
+};
+
+var splits_12 = {
+    timeline: [split_1, split_2]
+};
+
+var splits_34 = {
+    timeline: [split_3, split_4]
+};
+
+var splits_56 = {
+    timeline: [split_5, split_6]
+};
+
+var performance_check2 = { // this checks if subject doesn't commit too many mistakes
+    timeline: [splits_56],
+    conditional_function: function(){
+      console.log('performance check 2');
+      let last_trials = jsPsych.data.get().last(2*conditions.length*4*N_REPETITIONS+5).values();
+      last_trials = last_trials.filter(x => x !== undefined);
+      last_trials = last_trials.filter(x => "correct" in x);
+      let accuracy = last_trials.filter(x => x.correct === true).length / last_trials.length;
+      console.log('acc: ' + accuracy);
+      if(accuracy > 0.6){
+            return true;
+        } else {
+            jsPsych.data.premature = 0;
+            return false;
+        }
+    }
+};
+var performance_check1 = { // this checks if subject doesn't commit too many mistakes
+    timeline: [splits_34, performance_check2],
+    conditional_function: function(){
+      console.log('performance check 1');
+      let last_trials = jsPsych.data.get().last(2*conditions.length*4*N_REPETITIONS+5).values();
+      last_trials = last_trials.filter(x => x !== undefined);
+      last_trials = last_trials.filter(x => "correct" in x);
+      let accuracy = last_trials.filter(x => x.correct === true).length / last_trials.length;
+      console.log('acc: ' + accuracy);
+      if(accuracy > 0.6){
+            return true;
+        } else {
+            jsPsych.data.premature = 0;
+            return false;
+        }
+    }
+};
+
+timeline_part2.push(splits_12);
+if (pav) {
+  var pavlovia_finish = {
+    type: "pavlovia",
+    command: "finish",
+    participantId: subject_code + '_2'
+  };
+  timeline_part2.push(pavlovia_finish);
+  timeline_part2.push(wait1sec);
+  timeline_part2.push(pavlovia_init);
+};
+timeline_part2.push(performance_check1);
+
+// ------------------------------------------ PART 2 end
+// this checks if the difference was between staircases
+// so does it makes sense to continue with part 2?
+
+var timeline2 = {
+    timeline: timeline_part2
+};
+
+var part2_condition = { 
+    timeline: [timeline2],
+    conditional_function: function(data){
+      console.log('condition for part 2 checked');
+      if(st2() < 0.3 && (st2() - st1())*100 >= 3) {
+        jsPsych.data.premature = 1;
+        return true;
+      } else {
+        jsPsych.data.premature = -1;
+        return false;
+      }
+    }
+};
+
+if (pav) {
+var pavlovia_finish = {
+    type: "pavlovia",
+    command: "finish",
+    participantId: subject_code + '_S'
+  };
+  timeline.push(pavlovia_finish);
+  timeline.push(wait1sec);
+  timeline.push(pavlovia_init);
+};
+
+timeline.push(part2_condition);
+
+//----------------------------------------- END 
+
+var final_feedback = {
+    type: "html-keyboard-response",
+    stimulus: function(){
+      var msg = "<div style='background: #d3d3d3;padding: 20px;'>";
+      var msg_end = "You are still eligible for a reward. If you would like to try this experiment again, please contact the researcher on Prolific.";
+      if (jsPsych.data.premature == 0)
+        msg = msg +
+          "Unfortunately, we would not be able to proceed with the experiment as every participant needs to meet a minimum accuracy level. " +
+          msg_end;
+      else if (jsPsych.data.premature == -1)
+        msg = msg +
+          "Thank you. On this occasion, based on the automatic condition check, you were not selected to proceed with the Part 2 of the experiment. " +
+          msg_end;
+      else
+        msg = msg + "You finished the last block! Nicely done! You will receive bonus for your performance."
+      return msg + "<br/><br/>Press <b>SPACE</b> to continue</div>"
+    },
+    choices: [32]
+};
+timeline.push(final_feedback);
+
+/* finish connection with pavlovia.org */
+if (pav) {
+  var pavlovia_finish = {
+    type: "pavlovia",
+    command: "finish",
+    participantId: subject_code + '_E'
+  };
+  timeline.push(pavlovia_finish);
+  timeline.push(wait1sec);
+};
+
+var theend = {
+    type: 'html-button-response',
+    stimulus: "<div style='background: #d3d3d3;padding: 20px;'>" + 
+      "<p>This is the end of the experiment.</p>" +
+      "<p>Thank you for taking part :)<br/>You can come back to Prolific now by clicking the link below:</p> </div>",
+    choices: function() {
+      if (jsPsych.data.premature == 0 || jsPsych.data.premature == -1 )
+        return ["<a href='https://app.prolific.co/submissions/complete?cc=4909FC7C'> Prolific</a>"];
+      else
+        return ["<a href='https://app.prolific.co/submissions/complete?cc=BONUS490'>Prolific</a>"];
+    }
+};
+timeline.push(theend);
+
+/* ------------- RUN experiment  ------------- */
+
+jsPsych.init({
+  timeline: timeline,
+  on_finish: function() {
+    var prolificID = jsPsych.data.getURLVariable('subject');
+    jsPsych.data.addProperties({'participant' : prolificID});
+    //jsPsych.data.displayData();
+ }
+});
+
+</script>
+
+</html>

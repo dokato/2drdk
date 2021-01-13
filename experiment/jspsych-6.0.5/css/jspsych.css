@@ -1,0 +1,348 @@
+/*
+ * CSS for jsPsych experiments.
+ *
+ * This stylesheet provides minimal styling to make jsPsych
+ * experiments look polished without any additional styles.
+ */
+
+ @import url(https://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
+
+*,*:before, *::after {
+  box-sizing: border-box;
+}
+body {
+  padding: 0;
+  margin: 0;
+}
+
+:root{
+  --width:0;
+  --content('');
+}
+
+.progress-bar{
+  height: 3em;
+  width: 100%;
+  position: relative;
+  background-color: white;
+  color: black;
+}
+.progress-bar::before {
+  content: attr(data-label);
+  display: flex;
+  background-color: #086;
+  min-width: 0;
+  max-width: calc(100% - 1em);
+  width: calc(var(--width) * 1%);
+  align-items: center;
+  position: absolute;
+  left: .5em;
+  top: .5em;
+  bottom: .5em;
+  font-weight: bold;
+}
+
+/* Centered text */
+.large {
+  color: black;
+  position: absolute;
+  margin: 15px;
+  top:0;
+  left:0;
+}
+
+#countdown {
+  position: relative;
+  margin: auto;
+  margin-top: 100px;
+  height: 40px;
+  width: 40px;
+  text-align: center;
+}
+
+#countdown-number {
+  color: red;
+  display: inline-block;
+  line-height: 40px;
+}
+svg {
+  position: relative;
+  top:3.5em; 9.45em;
+  right:1em; center;
+  width: 90px;
+  height: 90px;
+  transform: rotateY(-180deg) rotateZ(-90deg);
+}
+
+svg circle {
+  stroke-dasharray:117px; 783px; /* 113*/
+  stroke-dashoffset: 0px;
+  stroke-linecap: round;
+  stroke-width: 3px;
+  stroke: red;
+  fill: none;
+  animation: countdown 5s linear backwards;
+}
+
+@keyframes countdown {
+  from {
+    stroke-dashoffset: 0px;
+  }
+  to {
+    stroke-dashoffset: 117px; 783px; /* 113*/
+  }
+}
+/* Container holding jsPsych content */
+
+ .jspsych-display-element {
+   display: flex;
+   flex-direction: column;
+   overflow-y: auto;
+ }
+
+ .jspsych-display-element:focus {
+   outline: none;
+ }
+
+ .jspsych-content-wrapper {
+   display: flex;
+   margin: auto;
+   flex: 1 1 100%;
+   width: 100%;
+   background-color:grey;
+ }
+
+ .jspsych-content {
+   max-width: 95%; /* this is mainly an IE 10-11 fix */
+   text-align: center;
+   margin: auto; /* this is for overflowing content */
+ }
+
+ .jspsych-top {
+   align-items: flex-start;
+ }
+
+ .jspsych-middle {
+   align-items: center;
+ }
+
+/* fonts and type */
+
+.jspsych-display-element {
+  font-family: 'Open Sans', 'Arial', sans-serif;
+  font-size: 18px;
+  line-height: 1.6em;
+}
+
+/* Form elements like input fields and buttons */
+
+.jspsych-display-element input[type="text"] {
+  font-family: 'Open Sans', 'Arial', sans-serif;
+  font-size: 14px;
+}
+
+/* borrowing Bootstrap style for btn elements, but combining styles a bit */
+.jspsych-btn {
+  display: inline-block;
+  padding: 12px 12px;
+  margin: 0px;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: 'Open Sans', 'Arial', sans-serif;
+  cursor: pointer;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  background-image: none;
+   border: 2px solid ;
+   opacity: .7;
+  /* border-radius: 4px; */
+  color: #333;
+  background-color: #fff;
+  border-radius: 75%;
+  border-color: #ccc
+}
+
+.btn:disabled,
+.btn.disabled{
+  display: inline-block;
+  padding: 12px 12px;
+  margin: 0px;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: 'Open Sans', 'Arial', sans-serif;
+  cursor: pointer;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  background-image: none;
+   border: 2px solid ;
+   opacity: .7;
+  /* border-radius: 4px; */
+  color: #333;
+  background-color: #fff;
+  border-radius: 75%;
+  border-color: #ccc;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.jspsych-xtra-space {
+  display: inline-block;
+  padding: 31px 100px;
+  margin: 0px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #D3D3D3;
+  background-color: #D3D3D3;
+  border-color: #D3D3D3;
+  border-radius: 50%;
+}
+
+.jspsych-btn:hover {
+  /* background-color: #ddd; */
+  opacity: 1;
+  font-weight: 600;
+  border-color: green; #aaa;
+}
+
+.jspsych-btn:disabled {
+  background-color: #eee;
+  color: #aaa;
+  border-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* jsPsych progress bar */
+
+#jspsych-progressbar-container {
+  color: #555;
+  border-bottom: 1px solid #dedede;
+  background-color: #f9f9f9;
+  margin-bottom: 1em;
+  text-align: center;
+  padding: 8px 0px;
+  width: 100%;
+  line-height: 1em;
+}
+#jspsych-progressbar-container span {
+  font-size: 14px;
+  padding-right: 14px;
+}
+#jspsych-progressbar-outer {
+  background-color: #eee;
+  width: 50%;
+  margin: auto;
+  height: 14px;
+  display: inline-block;
+  vertical-align: middle;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+#jspsych-progressbar-inner {
+  background-color: #aaa;
+  width: 0%;
+  height: 100%;
+}
+
+/* Control appearance of jsPsych.data.displayData() */
+#jspsych-data-display {
+  text-align: left;
+}
+
+.slider{
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  opacity: .7;
+  border-radius: 2px;
+  outline: none; /* Remove outline */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+ transition: opacity .2s;
+  /*background: white; bary background */
+}
+.slider:disabled
+.slider.disabled{
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+  width: 100%;
+  height: 8px;
+  opacity: .7;
+  border-radius: 2px;
+  outline: none;
+  -webkit-transition: .2s;
+ transition: opacity .2s;
+ cursor: not-allowed;
+ pointer-events: none;
+
+}
+
+.slider:hover {
+  opacity: 1;
+  /* width: 20px;
+  height: 20px; */
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  opacity: .7;
+  width: 20px;
+  height: 20px;
+  background: #808080;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.slider::-webkit-slider-thumb:hover {
+  opacity:1;
+  background: #4CAF50;
+}
+.slider::-moz-range-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  opacity: .7;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb:hover {
+  opacity:1;
+  background: #4CAF50;
+}
+
+/*class for symbol between items*/
+.symbol {
+  position: relative;
+  top: 31%;
+
+  /* border: 5px solid; */
+  padding: 50px;
+  border-color: 'black';
+}
+
+.blink {
+  margin: 25px;
+  font-size: 48px;
+  animation: blink 2s linear infinite;
+}
+@keyframes blink{
+0%{opacity: 0;}
+50%{opacity: .5;}
+100%{opacity: 1;}
+}
+.non-blink {
+  margin: 25px;
+  font-size: 48px;
+  animation: blink 60s linear infinite;
+}
+@keyframes non-blink{
+0%{opacity: 0;}
+50%{opacity: 0.05;}
+100%{opacity: 0.1;}
+}
