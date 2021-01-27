@@ -6,4 +6,4 @@
 #SBATCH --cpus-per-task 1
 #SBATCH -o logs/wwi_%j.out
 #SBATCH -e logs/wwi_%j.err
-python grid_ww_iter.py gridvalsf/
+python grid_ww_iter.py gridvals/

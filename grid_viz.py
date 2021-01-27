@@ -8,7 +8,7 @@ mu_range = np.logspace(-1, 1, Nsample)
 i0_range = np.linspace(0.98, 1.02, Nsample)
 
 # loading the saved data
-path_to_grid_values = 'gridvalsf/'
+path_to_grid_values = 'gridvals/'
 
 def average_std_grid(grid):
     """
