@@ -30,9 +30,9 @@ seaborn >= 0.11.0
 
 This assumes Python 3.7.
 
-Additionally, we used HDDM python package for HDDM modelling, which requires Python 2.7 (sic!).
+Additionally, we used HDDM python package for HDDM modelling, which requires Python 2.7.
 
-The data needs to go to `selected/` folder (these are "selected participants" that passed selection criteria from the experiment).
+The data needs to go to `selected/` folder (these are "selected" participants that passed quality control criteria from the experiment).
 
 Some functionality is tested with `pytest`.
 
@@ -43,6 +43,24 @@ The files should be run in the following order:
 3. `hddm_analysis.ipynb`, `hddm_model_comparison.ipynb` - compare HDDM models and make plots.
 4. `grid_ww_iter.py` (optionally: `grid_cluster.sh`) - runs grid search of parameters of modified Wong&Wang model.
 5. `grid_viz.py` - visualises grid plot from the previous step.
+
+## Running with Docker
+
+For convenience, there is a Docker image that makes it easy to install all dependencies.
+
+Run the following to build the image:
+
+```sh
+$ docker build -t 2drdk .
+```
+
+And this to mount the current folder and run the jupyter-lab with all packages installed. There are two ipython kernels: 
+(a) main for data analysis and grid search (Python 3.7)
+(b) `hddm` for HDDM fitting (Python 2.7).
+
+```sh
+$ docker run -p 8888:8888 -v $(pwd):/usr/src/app 2drdk
+```
 
 ## Citation
 
