@@ -1,5 +1,6 @@
 import re
 import os, glob
+import warnings
 import pandas as pd
 import numpy as np
 import scipy.stats as st
@@ -46,6 +47,7 @@ def get_avg_conditions_part2(dfp2, delta, stair_coh1, stair_coh2, column = 'corr
     OUT:
       dictionary with extracted data from part of of experiment
     '''
+    warnings.filterwarnings("ignore")
     v_ = extract_data_from_part2(dfp2, column, [delta, stair_coh1])
     cong_m, cong_s = compute_mean_sterr_from_vector(v_)
     v_ = extract_data_from_part2(dfp2, column, [0, stair_coh2])
@@ -178,7 +180,7 @@ def read_data_practise(path):
 
 # Stats
 
-def confidence_bootstrap(x, y, Nr = 1000, two_sided = False, interval = 95):
+def confidence_bootstrap(x, y, Nr = 1000, two_sided = True, func = np.median, interval = 95):
     '''
     Compute bootstraped cofidence intervals for XY mean difference.
     IN:
@@ -188,19 +190,50 @@ def confidence_bootstrap(x, y, Nr = 1000, two_sided = False, interval = 95):
         number of resampling
       *two_sided* - bool
         if True tests absolute difference, if False y > x
-      *alpha* - int
-        if True tests absolute difference, if False y > x
+      *func* - function
+        function to apply to subsampled groups (default median for non-parametric test)
+      *interval* - int
+        confidence interval in %
     OUT:
       confidence intervals
     '''
     assert interval < 100, "interval must be > 0 and < 100"
     diffs = np.zeros((Nr,))
+    merged_xy = np.r_[x, y]
     for i in range(Nr):
-        nx = resample(x, n_samples = len(x))
-        ny = resample(y, n_samples = len(y))
-        sub = np.mean(ny) - np.mean(nx)
+        nx = resample(merged_xy, n_samples = len(x))
+        ny = resample(merged_xy, n_samples = len(y))
+        sub = func(ny) - func(nx)
         diffs[i] = sub if two_sided else np.abs(sub)
     return (st.scoreatpercentile(diffs, 100 - interval), st.scoreatpercentile(diffs, interval))
+
+def nonparam_ci(x, y, alpha = 0.05):
+    '''
+    IN:
+      *x, y* - list, np.array
+        data arrays / lists
+      *alpha* - float
+        confidence interval, e.g., alpha = 0.05 for 95%
+    OUT:
+      confidence intervals
+    Based on:
+        Calculating confidence intervals for some non-parametric analyses by MICHAEL J CAMPBELL, MARTIN J GARDNER
+    '''
+    ct1 = len(np.unique(x))  #items in dataset 1
+    ct2 = len(np.unique(y))  #items in dataset 2
+    N = st.norm.ppf(1 - alpha/2) # percent point function - inverse of cdf
+
+    # The confidence interval for the difference between the two population
+    # medians is derived through these n x m differences.
+    diffs = sorted([i-j for i in x for j in y])
+
+    # For an approximate 100(1-a)% confidence interval first calculate K:
+    k = int(round(ct1*ct2/2 - (N * (ct1*ct2*(ct1+ct2+1)/12)**0.5)))
+
+    # The Kth smallest to the Kth largest of the n x m differences 
+    # ct1 and ct2 should be > ~20
+    cis = (diffs[k], diffs[len(diffs)-k])
+    return cis
 
 # Plotting
 

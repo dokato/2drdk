@@ -30,9 +30,9 @@ seaborn >= 0.11.0
 
 This assumes Python 3.7.
 
-Additionally, we used HDDM python package for HDDM modelling, which requires Python 2.7.
+Additionally, we used [HDDM python](http://ski.clps.brown.edu/hddm_docs/) package for HDDM modelling, which requires Python 2.7.
 
-The data needs to go to `selected/` folder (these are "selected" participants that passed quality control criteria from the experiment).
+The data needs to be stored in the `selected/` folder (these are "selected" participants that passed quality control criteria from the experiment).
 
 Some functionality is tested with `pytest`.
 

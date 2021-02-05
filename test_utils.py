@@ -41,10 +41,8 @@ def test_get_avg_conditions_part2():
     assert out['cong_m'] == 5
     assert out['cong_s'] == 0
 
-def test_confidence_bootstrap():
-    out = confidence_bootstrap([1,2,3,4], [7,8,9,10])
-    assert out[0] > 0
-    out = confidence_bootstrap([1,2,3,4], [1,2,4,5])
-    assert out[0] == 0
-    out = confidence_bootstrap([1,2,3,4], [1,2,4,5], two_sided = True)
-    assert out[0] <= 0
+def test_nonparam_ci():
+    out = nonparam_ci([7,8,9,10], [1,2,3,4])
+    assert out[0] > 0 and out[1] > 0
+    out = nonparam_ci([1,2,3,4], [1,2,4,5])
+    assert out[0] < 0 < out[1]
