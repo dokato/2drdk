@@ -423,8 +423,8 @@ def plot_two_boxplots(values1, values2, p_val = None,
     if y_label:
         plt.ylabel(y_label)
     if p_val:
-        plt.axhline(y=0.91*max_lim, xmin=.25, xmax=.75, color = 'k')
-        plt.text(0.48, 0.93*max_lim, '{}'.format('*' if p_val < alpha else 'ns'))
+        plt.axhline(y=0.90*max_lim, xmin=.25, xmax=.75, color = 'k')
+        plt.text(0.48, 0.92*max_lim, '{}'.format('*' if p_val < alpha else 'ns'))
         
 def plot_paired_barplots(group1_vals, group2_vals, p_val = None,
                            name1 = 'A', name2 = 'B',
