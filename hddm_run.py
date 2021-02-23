@@ -14,7 +14,7 @@ data = data[data['rt'] != data['rt'].max()] # removing outliers in the 45
 data = data[data['rt'] != data['rt'].max()]
 
 dataf = data[data['rt'] > 0]
-dataf = dataf[~(dataf.rt < 300)]
+dataf = dataf[~(dataf.rt < 200)]
 #dataf = hddm.utils.flip_errors(dataf) # optional
 dataf.rt = dataf.rt/1000 # rt in ms
 dataf.reset_index(inplace = True, drop = True) # needed for posterior generative plots (otherwise errors out)
