@@ -64,18 +64,18 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.52300776"
-     inkscape:cx="227.78864"
-     inkscape:cy="368.13187"
+     inkscape:zoom="0.80100633"
+     inkscape:cx="372.20759"
+     inkscape:cy="320.72786"
      inkscape:document-units="mm"
-     inkscape:current-layer="g1050"
+     inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
      showgrid="false"
      inkscape:snap-global="false"
-     inkscape:window-width="1252"
-     inkscape:window-height="779"
+     inkscape:window-width="1440"
+     inkscape:window-height="763"
      inkscape:window-x="0"
-     inkscape:window-y="23"
+     inkscape:window-y="25"
      inkscape:window-maximized="0" />
   <metadata
      id="metadata5">
@@ -85,7 +85,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -95,28 +95,29 @@
      id="layer1">
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
-       x="2.529444"
-       y="14.164862"
+       style="font-style:normal;font-weight:normal;font-size:9.17222px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="4.6461105"
+       y="23.151899"
        id="text911"><tspan
          sodipodi:role="line"
          id="tspan909"
-         x="2.529444"
-         y="14.164862"
-         style="stroke-width:0.264583">A</tspan></text>
+         x="4.6461105"
+         y="23.151899"
+         style="font-weight:bold;font-size:8.11389px;stroke-width:0.264583">A</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
-       x="105.7306"
-       y="14.164862"
+       x="106.78894"
+       y="23.151899"
        id="text915"><tspan
          sodipodi:role="line"
          id="tspan913"
-         x="105.7306"
-         y="14.164862"
-         style="stroke-width:0.264583">B</tspan></text>
+         x="106.78894"
+         y="23.151899"
+         style="font-weight:bold;font-size:8.11389px;stroke-width:0.264583">B</tspan></text>
     <g
-       id="g1086">
+       id="g1086"
+       transform="translate(4.7625002)">
       <rect
          style="fill:#b3b3b3;stroke:none;stroke-width:0.512274"
          id="rect859"
@@ -203,7 +204,7 @@
          clip-path="url(#clipPath843)" />
       <path
          style="fill:#ff6600;stroke:#ff6600;stroke-width:1.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:3.795, 1.265;stroke-dashoffset:0;stroke-opacity:1"
-         d="M 29.847389,38.953374 75.859901,86.577222"
+         d="M 28.526134,38.62306 74.86896,88.22879"
          id="path917"
          sodipodi:nodetypes="cc" />
       <circle
@@ -333,7 +334,7 @@
     </g>
     <g
        id="g1050"
-       transform="translate(-5.8208336)">
+       transform="translate(-0.52916663)">
       <rect
          style="fill:#b3b3b3;stroke:none;stroke-width:0.512274"
          id="rect948"
