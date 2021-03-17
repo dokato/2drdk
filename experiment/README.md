@@ -14,6 +14,12 @@ We hosted experiment on Pavlovia and used Prolific for recruitment.
 Cite this article, please, if you used this code:
 
 ```
-TODO
+@article{Krzeminski2021,
+	author = {Krzeminski, Dominik and Zhang, Jiaxiang},
+	title = {Imperfect integration: sensory congruency between multiple sources modulates selective decision-making processes},
+	year = {2021},
+	doi = {10.1101/2021.03.14.435307},
+	journal = {bioRxiv}
+}
 ```
 
