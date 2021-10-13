@@ -180,7 +180,8 @@ def read_data_practise(path):
 
 # Stats
 
-def confidence_bootstrap(x, y, Nr = 1000, two_sided = True, func = np.median, interval = 95):
+def confidence_bootstrap(x, y, Nr = 1000, Nd = 250, func = np.median, two_sided = True,
+                         paired = False, interval = 95):
     '''
     Compute bootstraped cofidence intervals for XY mean difference.
     IN:
@@ -188,23 +189,32 @@ def confidence_bootstrap(x, y, Nr = 1000, two_sided = True, func = np.median, in
         data arrays / lists
       *Nr* - int
         number of resampling
-      *two_sided* - bool
-        if True tests absolute difference, if False y > x
+      *Nd* - int
+        number of draws in each sampling
       *func* - function
         function to apply to subsampled groups (default median for non-parametric test)
+      *two_sided* - bool
+        if True tests absolute difference, if False y > x
+      *paired* - bool
+        paired test of not
       *interval* - int
-        confidence interval in %
+        confidence interval in % (i.e. 1 - alpha)
     OUT:
       confidence intervals
     '''
     assert interval < 100, "interval must be > 0 and < 100"
+    assert Nd < Nr, "Nd must be lower Nr"
     diffs = np.zeros((Nr,))
-    merged_xy = np.r_[x, y]
     for i in range(Nr):
-        nx = resample(merged_xy, n_samples = len(x))
-        ny = resample(merged_xy, n_samples = len(y))
+        if not paired:
+            nx = resample(x, n_samples = Nd)
+            ny = resample(y, n_samples = Nd)
+        else:
+            assert len(x) == len(y), "for paired test lengths need be"
+            idx = resample(range(len(x)), n_samples = Nd)
+            nx, ny = x[idx], y[idx]
         sub = func(ny) - func(nx)
-        diffs[i] = sub if two_sided else np.abs(sub)
+        diffs[i] = np.abs(sub) if two_sided else sub
     return (st.scoreatpercentile(diffs, 100 - interval), st.scoreatpercentile(diffs, interval))
 
 def nonparam_ci(x, y, alpha = 0.05):
