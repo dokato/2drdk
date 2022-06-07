@@ -67,11 +67,14 @@ $ docker run -p 8888:8888 -v $(pwd):/usr/src/app 2drdk
 Cite this article, please, if you used some of this work:
 
 ```
-@article{Krzeminski2021,
-	author = {Krzeminski, Dominik and Zhang, Jiaxiang},
-	title = {Imperfect integration: sensory congruency between multiple sources modulates selective decision-making processes},
-	year = {2021},
-	doi = {10.1101/2021.03.14.435307},
-	journal = {bioRxiv}
+
+@article{krzeminski_2ddm_2022,
+	title = {Imperfect integration: {Congruency} between multiple sensory sources modulates decision-making processes},
+	issn = {1943-393X},
+	doi = {10.3758/s13414-021-02434-7},
+	journal = {Attention, Perception, \& Psychophysics},
+	author = {Krzemiński, Dominik and Zhang, Jiaxiang},
+	month = apr,
+	year = {2022},
 }
 ```
