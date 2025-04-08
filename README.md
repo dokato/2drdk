@@ -1,14 +1,12 @@
 # 2d-RDK Experiment Analysis
 
-This repository contains the analysis files for the research work:
-**Integration of information in the perceptual decision making task**.
+This repository contains the analysis files for the research work: **Integration of information in the perceptual decision making task**.
 
 Detailed description and goals of the experiment can be found here: https://osf.io/4dn65
 
 ## Experiment
 
-The script for running experiments is in `experiment` with some details of how it
-was performed.
+The script for running experiments is in `experiment` folder with some details on how it was performed.
 
 ## Data
 
@@ -32,9 +30,9 @@ This assumes Python 3.7.
 
 Additionally, we used [HDDM python](http://ski.clps.brown.edu/hddm_docs/) package for HDDM modelling, which requires Python 2.7.
 
-The data needs to be stored in the `selected/` folder (these are "selected" participants that passed quality control criteria from the experiment).
+The data needs to be stored in the `selected/` folder (it indicates "selected" participants that passed quality control criteria of the experiment).
 
-Some functionality is tested with `pytest`.
+Some functionality of this procedure is automatically tested with `pytest`.
 
 The files should be run in the following order:
 
@@ -64,7 +62,7 @@ $ docker run -p 8888:8888 -v $(pwd):/usr/src/app 2drdk
 
 ## Citation
 
-Cite this article, please, if you used some of this work:
+Please, cite the article below, if any of this work was helpful.
 
 ```
 
